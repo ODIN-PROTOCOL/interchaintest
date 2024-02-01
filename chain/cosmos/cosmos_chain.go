@@ -1832,7 +1832,8 @@ func (c *CosmosChain) VoteOnProposalAllValidators(ctx context.Context, proposalI
 func regexpForJson(data []byte) []byte {
 	data = []byte(regexp.QuoteMeta(string(data)))
 	data = []byte(strings.ReplaceAll(string(data), ",", ",\\s*"))
-	data = []byte(strings.ReplaceAll(string(data), "{", "{\\s*"))
-	data = []byte(strings.ReplaceAll(string(data), "}", "}\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), ":", ":\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "{", "\\{\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "}", "\\s*\\}"))
 	return data
 }
