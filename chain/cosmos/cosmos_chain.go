@@ -872,6 +872,7 @@ type ValidatorWithIntPower struct {
 	Address      string
 	Power        int64
 	PubKeyBase64 string
+	PubKeyType   string
 }
 
 // Bootstraps the chain and starts it from genesis
@@ -1028,6 +1029,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 				Address:      genesisValidator.Address,
 				Power:        power,
 				PubKeyBase64: genesisValidator.PubKey.Value,
+				PubKeyType:   genesisValidator.PubKey.Type,
 			})
 		}
 
@@ -1122,8 +1124,24 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 				// modify genesis file overwriting validators address with the one generated for this test node
 				genBzReplace([]byte(validator.Address), []byte(testNodePrivValFile.Address))
 
+				valPubKey, err := json.Marshal(PrivValidatorKey{
+					Type:  validator.PubKeyType,
+					Value: validator.PubKeyBase64,
+				})
+				if err != nil {
+					return err
+				}
+
+				newValPubKey, err := json.Marshal(testNodePrivValFile.PubKey)
+				if err != nil {
+					return err
+				}
+
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "type", "@type"))
+				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "type", "@type"))
+
 				// modify genesis file overwriting validators base64 pub_key.value with the one generated for this test node
-				genBzReplace([]byte(validator.PubKeyBase64), []byte(testNodePrivValFile.PubKey.Value))
+				genBzReplace([]byte(valPubKey), []byte(newValPubKey))
 
 				existingValAddressBytes, err := hex.DecodeString(validator.Address)
 				if err != nil {
