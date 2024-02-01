@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -1046,6 +1047,12 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 			genBz = bytes.ReplaceAll(genBz, find, replace)
 		}
 
+		genBzReplaceWithRegexp := func(find *regexp.Regexp, replace []byte) {
+			mu.Lock()
+			defer mu.Unlock()
+			find.ReplaceAll(genBz, replace)
+		}
+
 		twoThirdsConsensus := int64(math.Ceil(float64(totalPower) * 2 / 3))
 		totalConsensus := int64(0)
 
@@ -1140,8 +1147,16 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "type", "@type"))
 				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "type", "@type"))
 
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "\"", "\"\\s*"))
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), ",", ",\\s*"))
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "{", "{\\s*"))
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "}", "}\\s*"))
+				pattern, err := regexp.Compile(string(valPubKey))
+
+				genBzReplaceWithRegexp(pattern, newValPubKey)
+
 				// modify genesis file overwriting validators base64 pub_key.value with the one generated for this test node
-				genBzReplace([]byte(valPubKey), []byte(newValPubKey))
+				//genBzReplace([]byte(valPubKey), []byte(newValPubKey))
 
 				existingValAddressBytes, err := hex.DecodeString(validator.Address)
 				if err != nil {
