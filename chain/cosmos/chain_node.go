@@ -36,10 +36,10 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	ccvclient "github.com/cosmos/interchain-security/v3/x/ccv/provider/client"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/dockerutil"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
+	"github.com/odin-protocol/interchaintest/v7/internal/dockerutil"
+	"github.com/odin-protocol/interchaintest/v7/testutil"
 )
 
 // ChainNode represents a node in the test network that is being created

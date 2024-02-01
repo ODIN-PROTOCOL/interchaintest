@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb/tui/presenter"
 	"github.com/rivo/tview"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb/tui/presenter"
 )
 
 // Update should be the argument for *(tview.Application).SetInputCapture.

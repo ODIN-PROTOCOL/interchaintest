@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	interchaintest "github.com/odin-protocol/interchaintest/v7"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )

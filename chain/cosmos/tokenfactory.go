@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
 )
 
 // TokenFactoryCreateDenom creates a new tokenfactory token in the format 'factory/accountaddress/name'.

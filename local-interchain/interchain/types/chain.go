@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/go-playground/validator"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
 )
 
 type Chain struct {

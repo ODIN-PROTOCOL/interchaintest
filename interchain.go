@@ -6,9 +6,9 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/testreporter"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
