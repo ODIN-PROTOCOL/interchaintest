@@ -1057,7 +1057,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		genBzReplaceWithRegexp := func(find *regexp.Regexp, replace []byte) {
 			mu.Lock()
 			defer mu.Unlock()
-			find.ReplaceAll(genBz, replace)
+			genBz = find.ReplaceAll(genBz, replace)
 		}
 
 		twoThirdsConsensus := int64(math.Ceil(float64(totalPower) * 2 / 3))
@@ -1175,6 +1175,8 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 
 				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "type", "@type"))
 				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "type", "@type"))
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "value", "key"))
+				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "value", "key"))
 
 				valPubKey = regexpForJson(valPubKey)
 				pattern, err = regexp.Compile(string(valPubKey))
@@ -1828,6 +1830,7 @@ func (c *CosmosChain) VoteOnProposalAllValidators(ctx context.Context, proposalI
 }
 
 func regexpForJson(data []byte) []byte {
+	data = []byte(regexp.QuoteMeta(string(data)))
 	data = []byte(strings.ReplaceAll(string(data), ",", ",\\s*"))
 	data = []byte(strings.ReplaceAll(string(data), "{", "{\\s*"))
 	data = []byte(strings.ReplaceAll(string(data), "}", "}\\s*"))
