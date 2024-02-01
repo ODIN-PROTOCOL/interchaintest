@@ -1159,13 +1159,18 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 
 				genBzReplaceWithRegexp(pattern, newValPubKey)
 
+				switch validator.PubKeyType {
+				case secp2561kPubKeyType:
+					validator.PubKeyType = secp2561kPubKeyCosmosType
+				case ed25519PubKeyType:
+					validator.PubKeyType = ed25519PubKeyCosmosType
+				}
+
 				switch testNodePrivValFile.PubKey.Type {
 				case secp2561kPubKeyType:
 					testNodePrivValFile.PubKey.Type = secp2561kPubKeyCosmosType
-					validator.PubKeyType = secp2561kPubKeyCosmosType
 				case ed25519PubKeyType:
 					testNodePrivValFile.PubKey.Type = ed25519PubKeyCosmosType
-					validator.PubKeyType = ed25519PubKeyCosmosType
 				}
 
 				newValPubKey, err = json.Marshal(testNodePrivValFile.PubKey)
