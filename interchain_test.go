@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/odin-protocol/interchaintest/v7"
 	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
 	"github.com/odin-protocol/interchaintest/v7/ibc"
 	"github.com/odin-protocol/interchaintest/v7/relayer/rly"

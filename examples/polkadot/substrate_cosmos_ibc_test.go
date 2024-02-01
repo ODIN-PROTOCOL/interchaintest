@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odin-protocol/interchaintest/v7"
 	"github.com/odin-protocol/interchaintest/v7/ibc"
 	"github.com/odin-protocol/interchaintest/v7/relayer"
 	"github.com/odin-protocol/interchaintest/v7/testreporter"

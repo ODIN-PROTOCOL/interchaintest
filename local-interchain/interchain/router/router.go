@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/odin-protocol/interchaintest/v7"
 	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
 	"github.com/odin-protocol/interchaintest/v7/ibc"
 	ictypes "github.com/strangelove-ventures/localinterchain/interchain/types"

@@ -7,6 +7,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/odin-protocol/interchaintest/v7"
 	"github.com/odin-protocol/interchaintest/v7/ibc"
 	"github.com/odin-protocol/interchaintest/v7/relayer"
 	"github.com/odin-protocol/interchaintest/v7/testreporter"

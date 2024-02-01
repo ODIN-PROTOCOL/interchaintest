@@ -12,6 +12,7 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/icza/dyno"
+	"github.com/odin-protocol/interchaintest/v7"
 	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
 	"github.com/odin-protocol/interchaintest/v7/chain/polkadot"
 	"github.com/odin-protocol/interchaintest/v7/ibc"
