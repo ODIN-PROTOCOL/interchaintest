@@ -1175,6 +1175,24 @@ func (tn *ChainNode) UpgradeProposal(ctx context.Context, keyName string, prop S
 	return tn.ExecTx(ctx, keyName, command...)
 }
 
+// UpgradeLegacyProposal submits a software-upgrade governance proposal to the chain.
+func (tn *ChainNode) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (string, error) {
+	command := []string{
+		"gov", "submit-legacy-proposal",
+		"software-upgrade", prop.Name,
+		"--upgrade-height", strconv.FormatUint(prop.Height, 10),
+		"--title", prop.Title,
+		"--description", prop.Description,
+		"--deposit", prop.Deposit,
+	}
+
+	if prop.Info != "" {
+		command = append(command, "--upgrade-info", prop.Info)
+	}
+
+	return tn.ExecTx(ctx, keyName, command...)
+}
+
 // TextProposal submits a text governance proposal to the chain.
 func (tn *ChainNode) TextProposal(ctx context.Context, keyName string, prop TextProposal) (string, error) {
 	command := []string{
@@ -1446,6 +1464,19 @@ func (tn *ChainNode) InitValidatorGenTx(
 func (tn *ChainNode) InitFullNodeFiles(ctx context.Context) error {
 	if err := tn.InitHomeFolder(ctx); err != nil {
 		return err
+	}
+
+	if tn.Chain.Config().UseCustomGenesis() {
+		genBz, err := os.ReadFile(tn.Chain.Config().GenesisPath)
+		if err != nil {
+			return fmt.Errorf("failed to read custom genesis file: %w", err)
+		}
+
+		err = tn.OverwriteGenesisFile(ctx, genBz)
+		if err != nil {
+			return fmt.Errorf("failed to overwrite genesis file: %w", err)
+		}
+
 	}
 
 	return tn.SetTestConfig(ctx)
