@@ -60,6 +60,13 @@ var (
 	DefaultProviderUnbondingPeriod = 504 * time.Hour
 )
 
+const (
+	secp2561kPubKeyType       = "tendermint/PubKeySecp256k1"
+	ed25519PubKeyType         = "tendermint/PubKeyEd25519"
+	secp2561kPubKeyCosmosType = "/cosmos.crypto.secp256k1.PubKey"
+	ed25519PubKeyCosmosType   = "/cosmos.crypto.ed25519.PubKey"
+)
+
 // CosmosChain is a local docker testnet for a Cosmos SDK chain.
 // Implements the ibc.Chain interface.
 type CosmosChain struct {
@@ -1144,14 +1151,36 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 					return err
 				}
 
+				valPubKey = regexpForJson(valPubKey)
+				pattern, err := regexp.Compile(string(valPubKey))
+				if err != nil {
+					return err
+				}
+
+				genBzReplaceWithRegexp(pattern, newValPubKey)
+
+				switch testNodePrivValFile.PubKey.Type {
+				case secp2561kPubKeyType:
+					testNodePrivValFile.PubKey.Type = secp2561kPubKeyCosmosType
+					validator.PubKeyType = secp2561kPubKeyCosmosType
+				case ed25519PubKeyType:
+					testNodePrivValFile.PubKey.Type = ed25519PubKeyCosmosType
+					validator.PubKeyType = ed25519PubKeyCosmosType
+				}
+
+				newValPubKey, err = json.Marshal(testNodePrivValFile.PubKey)
+				if err != nil {
+					return err
+				}
+
 				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "type", "@type"))
 				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "type", "@type"))
 
-				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "\"", "\"\\s*"))
-				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), ",", ",\\s*"))
-				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "{", "{\\s*"))
-				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "}", "}\\s*"))
-				pattern, err := regexp.Compile(string(valPubKey))
+				valPubKey = regexpForJson(valPubKey)
+				pattern, err = regexp.Compile(string(valPubKey))
+				if err != nil {
+					return err
+				}
 
 				genBzReplaceWithRegexp(pattern, newValPubKey)
 
@@ -1796,4 +1825,11 @@ func (c *CosmosChain) VoteOnProposalAllValidators(ctx context.Context, proposalI
 		}
 	}
 	return eg.Wait()
+}
+
+func regexpForJson(data []byte) []byte {
+	data = []byte(strings.ReplaceAll(string(data), ",", ",\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "{", "{\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "}", "}\\s*"))
+	return data
 }
