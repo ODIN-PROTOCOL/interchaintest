@@ -1173,6 +1173,14 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 					return err
 				}
 
+				valPubKey, err = json.Marshal(PrivValidatorKey{
+					Type:  validator.PubKeyType,
+					Value: validator.PubKeyBase64,
+				})
+				if err != nil {
+					return err
+				}
+
 				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "type", "@type"))
 				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "type", "@type"))
 				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "value", "key"))
@@ -1227,7 +1235,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		}
 	}
 
-	if !c.cfg.SkipGenTx {
+	if !c.cfg.SkipGenTx && !c.cfg.UseCustomGenesis() {
 		if err := validator0.CollectGentxs(ctx); err != nil {
 			return err
 		}
