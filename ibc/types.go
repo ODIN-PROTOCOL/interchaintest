@@ -175,6 +175,10 @@ func (c ChainConfig) MergeChainSpecConfig(other ChainConfig) ChainConfig {
 		c.CoinDecimals = other.CoinDecimals
 	}
 
+	if other.GenesisPath != "" {
+		c.GenesisPath = other.GenesisPath
+	}
+
 	return c
 }
 
