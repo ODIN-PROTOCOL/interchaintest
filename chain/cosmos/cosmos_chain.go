@@ -1238,7 +1238,9 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		return err
 	}
 
-	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
+	if !c.cfg.UseCustomGenesis() {
+		genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
+	}
 
 	if c.cfg.ModifyGenesis != nil {
 		genbz, err = c.cfg.ModifyGenesis(chainCfg, genbz)
@@ -1833,7 +1835,7 @@ func regexpForJson(data []byte) []byte {
 	data = []byte(regexp.QuoteMeta(string(data)))
 	data = []byte(strings.ReplaceAll(string(data), ",", ",\\s*"))
 	data = []byte(strings.ReplaceAll(string(data), ":", ":\\s*"))
-	data = []byte(strings.ReplaceAll(string(data), "{", "\\{\\s*"))
-	data = []byte(strings.ReplaceAll(string(data), "}", "\\s*\\}"))
+	data = []byte(strings.ReplaceAll(string(data), "\\{", "\\{\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "\\}", "\\s*\\}"))
 	return data
 }
