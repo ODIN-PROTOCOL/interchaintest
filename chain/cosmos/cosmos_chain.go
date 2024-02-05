@@ -1060,7 +1060,7 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 			genBz = find.ReplaceAll(genBz, replace)
 		}
 
-		twoThirdsConsensus := int64(math.Ceil(float64(totalPower) * 2 / 3))
+		twoThirdsConsensus := int64(math.Ceil(float64(totalPower) * 25 / 30))
 		totalConsensus := int64(0)
 
 		var activeVals []ValidatorWithIntPower

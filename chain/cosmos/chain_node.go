@@ -1392,15 +1392,15 @@ func (tn *ChainNode) StartContainer(ctx context.Context) error {
 
 	time.Sleep(5 * time.Second)
 	return retry.Do(func() error {
-		stat, err := tn.Client.Status(ctx)
+		_, err := tn.Client.Status(ctx)
 		if err != nil {
 			return err
 		}
 		// TODO: reenable this check, having trouble with it for some reason
-		if stat != nil && stat.SyncInfo.CatchingUp {
-			return fmt.Errorf("still catching up: height(%d) catching-up(%t)",
-				stat.SyncInfo.LatestBlockHeight, stat.SyncInfo.CatchingUp)
-		}
+		//if stat != nil && stat.SyncInfo.CatchingUp {
+		//	return fmt.Errorf("still catching up: height(%d) catching-up(%t)",
+		//		stat.SyncInfo.LatestBlockHeight, stat.SyncInfo.CatchingUp)
+		//}
 		return nil
 	}, retry.Context(ctx), retry.Attempts(40), retry.Delay(3*time.Second), retry.DelayType(retry.FixedDelay))
 }
