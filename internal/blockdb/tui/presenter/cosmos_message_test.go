@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
 	"github.com/stretchr/testify/require"
 )
 

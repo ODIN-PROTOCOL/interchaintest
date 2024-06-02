@@ -1,7 +1,7 @@
 package polkadot
 
 import (
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
 )
 
 var _ ibc.Wallet = &PolkadotWallet{}

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
 	"github.com/rivo/tview"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
 	"github.com/stretchr/testify/require"
 )
 

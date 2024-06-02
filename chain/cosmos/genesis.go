@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
 )
 
 type GenesisKV struct {

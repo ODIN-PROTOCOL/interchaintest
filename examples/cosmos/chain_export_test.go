@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/odin-protocol/interchaintest/v7"
+	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

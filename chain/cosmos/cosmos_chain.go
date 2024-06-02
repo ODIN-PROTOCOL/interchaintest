@@ -10,6 +10,8 @@ import (
 	"io"
 	"math"
 	"os"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -40,12 +43,12 @@ import (
 	volumetypes "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
-	wasmtypes "github.com/strangelove-ventures/interchaintest/v7/chain/cosmos/08-wasm-types"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/internal/tendermint"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/dockerutil"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	wasmtypes "github.com/odin-protocol/interchaintest/v7/chain/cosmos/08-wasm-types"
+	"github.com/odin-protocol/interchaintest/v7/chain/internal/tendermint"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
+	"github.com/odin-protocol/interchaintest/v7/internal/dockerutil"
+	"github.com/odin-protocol/interchaintest/v7/testutil"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -55,6 +58,13 @@ import (
 var (
 	defaultUpgradePath             = []string{"upgrade", "upgradedIBCState"}
 	DefaultProviderUnbondingPeriod = 504 * time.Hour
+)
+
+const (
+	secp2561kPubKeyType       = "tendermint/PubKeySecp256k1"
+	ed25519PubKeyType         = "tendermint/PubKeyEd25519"
+	secp2561kPubKeyCosmosType = "/cosmos.crypto.secp256k1.PubKey"
+	ed25519PubKeyCosmosType   = "/cosmos.crypto.ed25519.PubKey"
 )
 
 // CosmosChain is a local docker testnet for a Cosmos SDK chain.
@@ -440,6 +450,15 @@ func (c *CosmosChain) PushNewWasmClientProposal(ctx context.Context, keyName str
 // UpgradeProposal submits a software-upgrade governance proposal to the chain.
 func (c *CosmosChain) UpgradeProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
 	txHash, err := c.getFullNode().UpgradeProposal(ctx, keyName, prop)
+	if err != nil {
+		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
+	}
+	return c.txProposal(txHash)
+}
+
+// UpgradeLegacyProposal submits a software-upgrade governance proposal to the chain.
+func (c *CosmosChain) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (tx TxProposal, _ error) {
+	txHash, err := c.getFullNode().UpgradeLegacyProposal(ctx, keyName, prop)
 	if err != nil {
 		return tx, fmt.Errorf("failed to submit upgrade proposal: %w", err)
 	}
@@ -861,6 +880,7 @@ type ValidatorWithIntPower struct {
 	Address      string
 	Power        int64
 	PubKeyBase64 string
+	PubKeyType   string
 }
 
 // Bootstraps the chain and starts it from genesis
@@ -989,7 +1009,238 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		}
 	}
 
-	if !c.cfg.SkipGenTx {
+	if c.cfg.UseCustomGenesis() {
+		genBz, err := validator0.GenesisFileContent(ctx)
+		if err != nil {
+			return err
+		}
+
+		// parse genesis file
+		var genesisFile GenesisFile
+		if err := json.Unmarshal(genBz, &genesisFile); err != nil {
+			return err
+		}
+
+		genesisValidators := genesisFile.Validators
+		totalPower := int64(0)
+
+		validatorsWithPower := make([]ValidatorWithIntPower, 0)
+
+		// collect genesis validators and calculate total voting power
+		for _, genesisValidator := range genesisValidators {
+			power, err := strconv.ParseInt(genesisValidator.Power, 10, 64)
+			if err != nil {
+				return err
+			}
+			totalPower += power
+			validatorsWithPower = append(validatorsWithPower, ValidatorWithIntPower{
+				Address:      genesisValidator.Address,
+				Power:        power,
+				PubKeyBase64: genesisValidator.PubKey.Value,
+				PubKeyType:   genesisValidator.PubKey.Type,
+			})
+		}
+
+		// sort validators by voting power
+		sort.Slice(validatorsWithPower, func(i, j int) bool {
+			return validatorsWithPower[i].Power > validatorsWithPower[j].Power
+		})
+
+		//var eg errgroup.Group
+		var mu sync.Mutex
+		genBzReplace := func(find, replace []byte) {
+			mu.Lock()
+			defer mu.Unlock()
+			genBz = bytes.ReplaceAll(genBz, find, replace)
+		}
+
+		genBzReplaceWithRegexp := func(find *regexp.Regexp, replace []byte) {
+			mu.Lock()
+			defer mu.Unlock()
+			genBz = find.ReplaceAll(genBz, replace)
+		}
+
+		twoThirdsConsensus := int64(math.Ceil(float64(totalPower) * 25 / 30))
+		totalConsensus := int64(0)
+
+		var activeVals []ValidatorWithIntPower
+		// choose validators with enough VP to reach consensus
+		for _, validator := range validatorsWithPower {
+			activeVals = append(activeVals, validator)
+
+			totalConsensus += validator.Power
+
+			if totalConsensus > twoThirdsConsensus {
+				break
+			}
+		}
+
+		testValsNum := c.NumValidators
+
+		c.NumValidators += len(activeVals)
+
+		// create chainNodes for validators from genesis
+		if err := c.initializeChainNodes(ctx, testName, validator0.DockerClient, validator0.NetworkID); err != nil {
+			return fmt.Errorf("failed to initialise additional nodes: %w", err)
+		}
+
+		// init home dir with full node files for validators from genesis
+		eg, egCtx := errgroup.WithContext(ctx)
+		for i := testValsNum; i < len(c.Validators); i++ {
+			v := c.Validators[i]
+			v.Validator = true
+			eg.Go(func() error {
+				if err := v.InitFullNodeFiles(egCtx); err != nil {
+					return err
+				}
+				for configFile, modifiedConfig := range configFileOverrides {
+					modifiedToml, ok := modifiedConfig.(testutil.Toml)
+					if !ok {
+						return fmt.Errorf("Provided toml override for file %s is of type (%T). Expected (DecodedToml)", configFile, modifiedConfig)
+					}
+					if err := testutil.ModifyTomlConfigFile(
+						egCtx,
+						v.logger(),
+						v.DockerClient,
+						v.TestName,
+						v.VolumeName,
+						configFile,
+						modifiedToml,
+					); err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+		}
+
+		if err := eg.Wait(); err != nil {
+			return err
+		}
+
+		eg, egCtx = errgroup.WithContext(ctx)
+		// replace pubkeys on genesis with newly created validators keys
+		for i, validator := range activeVals {
+			// skip test validators and replace only for validators from genesis
+			v := c.Validators[i+testValsNum]
+			validator := validator
+			eg.Go(func() error {
+				testNodePubKeyJsonBytes, err := v.ReadFile(ctx, "config/priv_validator_key.json")
+				if err != nil {
+					return fmt.Errorf("failed to read priv_validator_key.json: %w", err)
+				}
+
+				var testNodePrivValFile PrivValidatorKeyFile
+				if err := json.Unmarshal(testNodePubKeyJsonBytes, &testNodePrivValFile); err != nil {
+					return fmt.Errorf("failed to unmarshal priv_validator_key.json: %w", err)
+				}
+
+				// modify genesis file overwriting validators address with the one generated for this test node
+				genBzReplace([]byte(validator.Address), []byte(testNodePrivValFile.Address))
+
+				valPubKey, err := json.Marshal(PrivValidatorKey{
+					Type:  validator.PubKeyType,
+					Value: validator.PubKeyBase64,
+				})
+				if err != nil {
+					return err
+				}
+
+				newValPubKey, err := json.Marshal(testNodePrivValFile.PubKey)
+				if err != nil {
+					return err
+				}
+
+				valPubKey = regexpForJson(valPubKey)
+				pattern, err := regexp.Compile(string(valPubKey))
+				if err != nil {
+					return err
+				}
+
+				genBzReplaceWithRegexp(pattern, newValPubKey)
+
+				switch validator.PubKeyType {
+				case secp2561kPubKeyType:
+					validator.PubKeyType = secp2561kPubKeyCosmosType
+				case ed25519PubKeyType:
+					validator.PubKeyType = ed25519PubKeyCosmosType
+				}
+
+				switch testNodePrivValFile.PubKey.Type {
+				case secp2561kPubKeyType:
+					testNodePrivValFile.PubKey.Type = secp2561kPubKeyCosmosType
+				case ed25519PubKeyType:
+					testNodePrivValFile.PubKey.Type = ed25519PubKeyCosmosType
+				}
+
+				newValPubKey, err = json.Marshal(testNodePrivValFile.PubKey)
+				if err != nil {
+					return err
+				}
+
+				valPubKey, err = json.Marshal(PrivValidatorKey{
+					Type:  validator.PubKeyType,
+					Value: validator.PubKeyBase64,
+				})
+				if err != nil {
+					return err
+				}
+
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "type", "@type"))
+				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "type", "@type"))
+				valPubKey = []byte(strings.ReplaceAll(string(valPubKey), "value", "key"))
+				newValPubKey = []byte(strings.ReplaceAll(string(newValPubKey), "value", "key"))
+
+				valPubKey = regexpForJson(valPubKey)
+				pattern, err = regexp.Compile(string(valPubKey))
+				if err != nil {
+					return err
+				}
+
+				genBzReplaceWithRegexp(pattern, newValPubKey)
+
+				// modify genesis file overwriting validators base64 pub_key.value with the one generated for this test node
+				//genBzReplace([]byte(valPubKey), []byte(newValPubKey))
+
+				existingValAddressBytes, err := hex.DecodeString(validator.Address)
+				if err != nil {
+					return err
+				}
+
+				testNodeAddressBytes, err := hex.DecodeString(testNodePrivValFile.Address)
+				if err != nil {
+					return err
+				}
+
+				valConsPrefix := fmt.Sprintf("%svalcons", chainCfg.Bech32Prefix)
+
+				existingValBech32ValConsAddress, err := bech32.ConvertAndEncode(valConsPrefix, existingValAddressBytes)
+				if err != nil {
+					return err
+				}
+
+				testNodeBech32ValConsAddress, err := bech32.ConvertAndEncode(valConsPrefix, testNodeAddressBytes)
+				if err != nil {
+					return err
+				}
+
+				genBzReplace([]byte(existingValBech32ValConsAddress), []byte(testNodeBech32ValConsAddress))
+
+				return nil
+			})
+		}
+
+		if err := eg.Wait(); err != nil {
+			return err
+		}
+
+		err = validator0.OverwriteGenesisFile(ctx, genBz)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !c.cfg.SkipGenTx && !c.cfg.UseCustomGenesis() {
 		if err := validator0.CollectGentxs(ctx); err != nil {
 			return err
 		}
@@ -1000,7 +1251,9 @@ func (c *CosmosChain) Start(testName string, ctx context.Context, additionalGene
 		return err
 	}
 
-	genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
+	if !c.cfg.UseCustomGenesis() {
+		genbz = bytes.ReplaceAll(genbz, []byte(`"stake"`), []byte(fmt.Sprintf(`"%s"`, chainCfg.Denom)))
+	}
 
 	if c.cfg.ModifyGenesis != nil {
 		genbz, err = c.cfg.ModifyGenesis(chainCfg, genbz)
@@ -1589,4 +1842,13 @@ func (c *CosmosChain) VoteOnProposalAllValidators(ctx context.Context, proposalI
 		}
 	}
 	return eg.Wait()
+}
+
+func regexpForJson(data []byte) []byte {
+	data = []byte(regexp.QuoteMeta(string(data)))
+	data = []byte(strings.ReplaceAll(string(data), ",", ",\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), ":", ":\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "\\{", "\\{\\s*"))
+	data = []byte(strings.ReplaceAll(string(data), "\\}", "\\s*\\}"))
+	return data
 }

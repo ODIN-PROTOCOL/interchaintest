@@ -36,10 +36,10 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	ccvclient "github.com/cosmos/interchain-security/v3/x/ccv/provider/client"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/dockerutil"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
+	"github.com/odin-protocol/interchaintest/v7/internal/dockerutil"
+	"github.com/odin-protocol/interchaintest/v7/testutil"
 )
 
 // ChainNode represents a node in the test network that is being created
@@ -1175,6 +1175,25 @@ func (tn *ChainNode) UpgradeProposal(ctx context.Context, keyName string, prop S
 	return tn.ExecTx(ctx, keyName, command...)
 }
 
+// UpgradeLegacyProposal submits a software-upgrade governance proposal to the chain.
+func (tn *ChainNode) UpgradeLegacyProposal(ctx context.Context, keyName string, prop SoftwareUpgradeProposal) (string, error) {
+	command := []string{
+		"gov", "submit-legacy-proposal",
+		"software-upgrade", prop.Name,
+		"--upgrade-height", strconv.FormatUint(prop.Height, 10),
+		"--title", prop.Title,
+		"--description", prop.Description,
+		"--deposit", prop.Deposit,
+		"--no-validate",
+	}
+
+	if prop.Info != "" {
+		command = append(command, "--upgrade-info", prop.Info)
+	}
+
+	return tn.ExecTx(ctx, keyName, command...)
+}
+
 // TextProposal submits a text governance proposal to the chain.
 func (tn *ChainNode) TextProposal(ctx context.Context, keyName string, prop TextProposal) (string, error) {
 	command := []string{
@@ -1374,15 +1393,15 @@ func (tn *ChainNode) StartContainer(ctx context.Context) error {
 
 	time.Sleep(5 * time.Second)
 	return retry.Do(func() error {
-		stat, err := tn.Client.Status(ctx)
+		_, err := tn.Client.Status(ctx)
 		if err != nil {
 			return err
 		}
 		// TODO: reenable this check, having trouble with it for some reason
-		if stat != nil && stat.SyncInfo.CatchingUp {
-			return fmt.Errorf("still catching up: height(%d) catching-up(%t)",
-				stat.SyncInfo.LatestBlockHeight, stat.SyncInfo.CatchingUp)
-		}
+		//if stat != nil && stat.SyncInfo.CatchingUp {
+		//	return fmt.Errorf("still catching up: height(%d) catching-up(%t)",
+		//		stat.SyncInfo.LatestBlockHeight, stat.SyncInfo.CatchingUp)
+		//}
 		return nil
 	}, retry.Context(ctx), retry.Attempts(40), retry.Delay(3*time.Second), retry.DelayType(retry.FixedDelay))
 }
@@ -1446,6 +1465,19 @@ func (tn *ChainNode) InitValidatorGenTx(
 func (tn *ChainNode) InitFullNodeFiles(ctx context.Context) error {
 	if err := tn.InitHomeFolder(ctx); err != nil {
 		return err
+	}
+
+	if tn.Chain.Config().UseCustomGenesis() {
+		genBz, err := os.ReadFile(tn.Chain.Config().GenesisPath)
+		if err != nil {
+			return fmt.Errorf("failed to read custom genesis file: %w", err)
+		}
+
+		err = tn.OverwriteGenesisFile(ctx, genBz)
+		if err != nil {
+			return fmt.Errorf("failed to overwrite genesis file: %w", err)
+		}
+
 	}
 
 	return tn.SetTestConfig(ctx)

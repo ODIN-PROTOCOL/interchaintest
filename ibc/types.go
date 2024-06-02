@@ -54,6 +54,8 @@ type ChainConfig struct {
 	SidecarConfigs []SidecarConfig
 	// CoinDecimals for the chains base micro/nano/atto token configuration.
 	CoinDecimals *int64
+	// GenesisPath to use not default genesis
+	GenesisPath string
 }
 
 func (c ChainConfig) Clone() ChainConfig {
@@ -173,6 +175,10 @@ func (c ChainConfig) MergeChainSpecConfig(other ChainConfig) ChainConfig {
 		c.CoinDecimals = other.CoinDecimals
 	}
 
+	if other.GenesisPath != "" {
+		c.GenesisPath = other.GenesisPath
+	}
+
 	return c
 }
 
@@ -189,6 +195,10 @@ func (c ChainConfig) IsFullyConfigured() bool {
 		c.Denom != "" &&
 		c.GasPrices != "" &&
 		c.TrustingPeriod != ""
+}
+
+func (c ChainConfig) UseCustomGenesis() bool {
+	return c.GenesisPath != ""
 }
 
 // SidecarConfig describes the configuration options for instantiating a new sidecar process.

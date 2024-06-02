@@ -14,8 +14,8 @@
 //	import (
 //	  "testing"
 //
-//	  "github.com/strangelove-ventures/interchaintest/v7/conformance"
-//	  "github.com/strangelove-ventures/interchaintest/v7/ibc"
+//	  "github.com/odin-protocol/interchaintest/v7/conformance"
+//	  "github.com/odin-protocol/interchaintest/v7/ibc"
 //	)
 //
 //	func TestMyRelayer(t *testing.T) {
@@ -38,13 +38,13 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/dockerutil"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/odin-protocol/interchaintest/v7"
+	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/internal/dockerutil"
+	"github.com/odin-protocol/interchaintest/v7/relayer"
+	"github.com/odin-protocol/interchaintest/v7/testreporter"
+	"github.com/odin-protocol/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )

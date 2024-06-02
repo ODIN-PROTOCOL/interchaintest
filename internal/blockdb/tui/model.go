@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
 	"github.com/rivo/tview"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
 )
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=mainContent

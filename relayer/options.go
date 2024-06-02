@@ -1,7 +1,7 @@
 package relayer
 
 import (
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
 )
 
 // RelayerOpt is a functional option for configuring a relayer.

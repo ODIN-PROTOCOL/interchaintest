@@ -8,7 +8,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
 	"go.uber.org/zap"
 )
 

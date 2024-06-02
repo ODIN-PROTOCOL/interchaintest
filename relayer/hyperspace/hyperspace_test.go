@@ -3,7 +3,7 @@ package hyperspace_test
 import (
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v7/relayer/hyperspace"
+	"github.com/odin-protocol/interchaintest/v7/relayer/hyperspace"
 	"github.com/stretchr/testify/require"
 )
 

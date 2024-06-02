@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/odin-protocol/interchaintest/v7/chain/cosmos"
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	ictypes "github.com/strangelove-ventures/localinterchain/interchain/types"
 
 	"github.com/tyler-smith/go-bip39"

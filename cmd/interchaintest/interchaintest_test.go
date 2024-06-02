@@ -12,15 +12,15 @@ import (
 	"testing"
 	"time"
 
+	interchaintest "github.com/odin-protocol/interchaintest/v7"
+	"github.com/odin-protocol/interchaintest/v7/conformance"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/internal/blockdb"
+	blockdbtui "github.com/odin-protocol/interchaintest/v7/internal/blockdb/tui"
+	"github.com/odin-protocol/interchaintest/v7/internal/version"
+	"github.com/odin-protocol/interchaintest/v7/relayer"
+	"github.com/odin-protocol/interchaintest/v7/testreporter"
 	"github.com/rivo/tview"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/conformance"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/blockdb"
-	blockdbtui "github.com/strangelove-ventures/interchaintest/v7/internal/blockdb/tui"
-	"github.com/strangelove-ventures/interchaintest/v7/internal/version"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	"go.uber.org/zap"
 )
 

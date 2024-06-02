@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer/hermes"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer/hyperspace"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer/rly"
+	"github.com/odin-protocol/interchaintest/v7/ibc"
+	"github.com/odin-protocol/interchaintest/v7/relayer"
+	"github.com/odin-protocol/interchaintest/v7/relayer/hermes"
+	"github.com/odin-protocol/interchaintest/v7/relayer/hyperspace"
+	"github.com/odin-protocol/interchaintest/v7/relayer/rly"
 	"go.uber.org/zap"
 )
 
