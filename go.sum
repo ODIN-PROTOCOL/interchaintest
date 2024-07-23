@@ -246,8 +246,8 @@ github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 h1:TngWCqHvy9oXAN6lEV
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5/go.mod h1:lmUJ/7eu/Q8D7ML55dXQrVaamCz2vxCfdQBasLZfHKk=
 github.com/ODIN-PROTOCOL/wasmd v0.51.1 h1:YrCKatR2QuHIJDjueLABfnU4XZ+tMmmTqiyXUqD43M0=
 github.com/ODIN-PROTOCOL/wasmd v0.51.1/go.mod h1:/FFZ3fX20ATe5MPp4EkNTu9aMGQDkp7yXpmjtSmyyUw=
-github.com/ODIN-PROTOCOL/wasmvm/v2 v2.0.14 h1:icJ2ZHS5Rtdk2JJDiyiCprzgLMWRW3hJVMfG+0yR+2U=
-github.com/ODIN-PROTOCOL/wasmvm/v2 v2.0.14/go.mod h1:byVmvc+Sk1gIpmn1exL8EdAiXebWZCsLe5HtvI0PVpk=
+github.com/ODIN-PROTOCOL/wasmvm/v2 v2.0.16 h1:BGS86au8IfP5S7OYG/Fiy175YccOrVF1NAtino0AmPU=
+github.com/ODIN-PROTOCOL/wasmvm/v2 v2.0.16/go.mod h1:byVmvc+Sk1gIpmn1exL8EdAiXebWZCsLe5HtvI0PVpk=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
